@@ -9,6 +9,7 @@ package io.pleo.antaeus.app
 
 import getPaymentProvider
 import io.pleo.antaeus.core.helpers.DateTimeProvider
+import io.pleo.antaeus.core.helpers.TimeOutProvider
 import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
@@ -58,11 +59,13 @@ fun main() {
 
     // Create cross-cutting-concerns
     val dateTimeProvider = DateTimeProvider()
+    val timeOutProvider = TimeOutProvider()
 
     // This is _my_ billing service
     val billingService = BillingService(
             dal = dal,
             dateTimeProvider = dateTimeProvider,
+            timeOutProvider = timeOutProvider,
             paymentProvider = paymentProvider
     )
 
