@@ -18,15 +18,18 @@ class BillingService(
 
     private suspend fun mainRoutine() {
         while (true) {
-
             if (!dateTimeProvider.isFirstOfTheMonth()) {
-                val nextFirstOfTheMonth = dateTimeProvider.nextFirstOfTheMonth()
-                val intervalInMs = Duration.between(nextFirstOfTheMonth, dateTimeProvider.now()).toMillis()
+                val intervalInMs = calculateSleepIntervalToNextMonth()
                 goToSleep(intervalInMs)
             }
 
             // TODO: pick up from here
         }
+    }
+
+    private fun calculateSleepIntervalToNextMonth(): Long {
+        val nextFirstOfTheMonth = dateTimeProvider.nextFirstOfTheMonth()
+        return Duration.between(nextFirstOfTheMonth, dateTimeProvider.now()).toMillis()
     }
 
     private suspend fun goToSleep(timeInMs : Long) {
