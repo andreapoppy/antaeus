@@ -1,6 +1,7 @@
 package io.pleo.antaeus.core.services
 
 import io.mockk.*
+import io.pleo.antaeus.core.*
 import io.pleo.antaeus.core.contracts.IDateTimeProvider
 import io.pleo.antaeus.core.contracts.ITimeOutProvider
 import io.pleo.antaeus.core.external.PaymentProvider
@@ -29,7 +30,7 @@ class BillingServiceTests {
 
         // Assert
         verify(exactly = 2) { fixture.paymentProvider.charge(any())}
-        coVerify(exactly = 1) { fixture.timeOutProvider.sleep(5 * 60 * 1000L)}
+        coVerify(exactly = 1) { fixture.timeOutProvider.sleep(5 * 60)}
     }
 }
 
