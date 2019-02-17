@@ -13,6 +13,16 @@ import io.pleo.antaeus.models.InvoiceStatus
 import kotlinx.coroutines.*
 import java.time.Duration
 
+/*
+    BillingService handles the processing of invoices. The service can run in the background on its own
+    thread as a coroutine. This service depends on:
+     - The invoice service
+     - The customer service
+     - An IDateTimeProvider in order to control time-related logic
+     - An ITimeOutProvider in order to control how the billing service goes in idle mode
+     - A Payment provider for the actual processing of the invoices (external)
+     - A ILogger implementation for providing basic logging
+ */
 open class BillingService(
         private val invoiceService: InvoiceService,
         private val customerService: CustomerService,
@@ -42,6 +52,7 @@ open class BillingService(
         logger.info("BillingService stopped")
     }
 
+    // Controls the execution of the service
     protected open fun cancellationToken() : Boolean {
         return false
     }
@@ -53,20 +64,25 @@ open class BillingService(
         }
     }
 
+    // Main logic of the service
     private suspend fun mainRoutine() {
         this.logger.info("Entering main routine")
 
+        // If it is not the 1st of the month go idle
         if (!dateTimeProvider.isFirstOfTheMonth()) {
             val intervalInMs = calculateSleepIntervalToNextMonth()
             this.timeOutProvider.sleep(intervalInMs)
             return
         }
 
+        // Otherwise fetch the invoices to process
         val pendingInvoices = invoiceService.fetchAllByStatus(InvoiceStatus.PENDING)
 
+        // Process each invoice sequentially
         for (invoice in pendingInvoices) {
             this.logger.info("Processing invoice: id ${invoice.id}")
             val isSuccess : Boolean = try {
+                // Try to process the invoice
                 this.paymentProvider.charge(invoice)
             } catch (e: CustomerNotFoundException) {
                 handleCustomerNotFoundException(invoice)
@@ -87,6 +103,7 @@ open class BillingService(
         this.timeOutProvider.sleep(this.iterationSleepTime)
     }
 
+    // Handle successful processing of the invoice, update invoice status in the database
     private fun handleSuccess(invoice: Invoice) {
         this.logger.info("Invoice successfully processed: id ${invoice.id}")
         val updatedInvoice = invoiceService.updateStatusById(invoice.id, InvoiceStatus.PAID)
@@ -97,10 +114,13 @@ open class BillingService(
         }
     }
 
+    // Handle unsuccessful processing of the invoice, just log a generic error
     private fun handleFailure(invoice: Invoice) {
         this.logger.error("Ouch! Invoice processing failed: id ${invoice.id}")
     }
 
+    // Handle exceptional case with mismatch of invoice currency and customer currency
+    // convert the invoice amount to the new currency and update the database
     private fun handleCurrencyMismatchException(invoice: Invoice): Boolean {
         val customer = customerService.fetch(invoice.customerId)
         this.logger.warn("Failed to process invoice with id ${invoice.id}, currency ${invoice.amount.currency}: customer id ${customer?.id} currency ${customer?.currency}")
@@ -108,16 +128,20 @@ open class BillingService(
         return false
     }
 
+    // Handle exceptional case with missing customer, just log an error
     private fun handleCustomerNotFoundException(invoice: Invoice): Boolean {
         this.logger.error("Failed to process invoice with id ${invoice.id}, customer ${invoice.customerId} not found")
         return false
     }
 
+    // Handle exceptional case with network error during processing of the invoice,
+    // log an error and try again after some time
     private suspend fun handleNetworkException(invoice: Invoice) {
         this.logger.warn("Network outage while processing invoice ${invoice.id}: retrying in 60 seconds")
         this.timeOutProvider.sleep(this.networkOutageSleepTime)
     }
 
+    // Helper method for calculating idle time until the next 1st of the month
     private fun calculateSleepIntervalToNextMonth(): Long {
         val nextFirstOfTheMonth = dateTimeProvider.nextFirstOfTheMonth()
         return Duration.between(dateTimeProvider.now(), nextFirstOfTheMonth).toMillis()

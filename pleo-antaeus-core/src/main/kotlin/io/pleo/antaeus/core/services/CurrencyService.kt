@@ -4,6 +4,12 @@ import io.pleo.antaeus.models.Currency
 import io.pleo.antaeus.models.Money
 import java.math.BigDecimal
 
+/*
+ CurrencyService: provides a simple way to convert amounts of invoices, it should be a reliable external service or
+ a company-reviewed library. It is important to handle the correctly the rounding of the conversions.
+ The hard-coded values are taken from https://transferwise.com/gb/currency-converter on 17th of February 2019
+ */
+
 class CurrencyService {
 
     private val eurToDkk = BigDecimal(0.13)

@@ -16,6 +16,20 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
+/*
+    Suite of tests for the _BillingService_
+    These tests are "scenario tests", they cover essential scenarios in our application for what concerns the processing
+    of invoices. Every tests mocks specific dependencies in order to control the execution flow.
+
+    The _TestFixture_ is an helper class that let us re-use basic initializations of the mocked services.
+
+    These are the scenarios covered:
+    - The _BillingService_ can process 2 standard invoices
+    - The _BillingService_ can process 1 invoice successfully after recovering from a network outage
+    - The _BillingService_ can process invoices only on the 1st day of any month
+    - The _BillingService_ logs an error when the customer for a target invoice does not exist
+    - The _BillingService_ can process 1 invoice successfully after trying with a wrong currency
+ */
 
 class BillingServiceTests {
 
