@@ -41,7 +41,7 @@ open class BillingService(
     }
 
     private suspend fun mainRoutine() {
-        this.logger.info("Entering mainRoutine")
+        this.logger.info("Entering main routine")
 
         if (!dateTimeProvider.isFirstOfTheMonth()) {
             val intervalInMs = calculateSleepIntervalToNextMonth()
@@ -51,9 +51,9 @@ open class BillingService(
         val pendingInvoices = dal.fetchInvoicesByStatus(InvoiceStatus.PENDING)
         for (invoice in pendingInvoices) {
 
-            this.logger.info("Processing invoice with id ${invoice.id}")
+            this.logger.info("Processing invoice: id ${invoice.id}")
 
-            var isSuccess = false
+            var isSuccess : Boolean
             try {
                 isSuccess = this.paymentProvider.charge(invoice)
             } catch (e: CustomerNotFoundException) {
