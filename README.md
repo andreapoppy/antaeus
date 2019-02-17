@@ -1,3 +1,47 @@
+## Candidate: Andrea Del Popolo
+
+Date: 17-02-2019
+
+Contacts: andrea.del.popolo@hotmail.it | [LinkedIn](https://www.linkedin.com/in/andrea-del-popolo/)
+
+### Notes:
+
+It is the first time that I work in Kotlin, overall I found it interesting and plesant to work with. My background is in .NET, C# and Visual Studio, for this solution I chose IntelliJ Idea Community Edition as IDE and JVM 8.
+
+### How does my solution address the challenge?
+
+In my solution I use the coroutine feature of the kotlin language, it allows to create a background thread that runs only my logic for processing the invoices.
+
+The BillingService is initialized by the main function of the pleo-antaeus-app module upon start.
+Once the services spins up, it checks if it is the 1st of the month, if it is not then the service remains idle until the next 1st day of the next month.
+
+When it is the 1st of the month, then the service processes the invoices that are stored in the database in a sequential fashon. It continues to process invoices until the end of the day, should new invoices be stored during the day.
+
+The BillingService depends on the following:
+* The invoice service
+* The customer service
+* An IDateTimeProvider in order to control time-related logic
+* An ITimeOutProvider in order to control how the billing service goes in idle mode
+* A Payment provider for the actual processing of the invoices (external)
+* A ILogger implementation for providing basic logging features
+
+I have decided to inject the above dependencies in the constructor, this allows me to easily test the logic of the service by controlling the mocked dependencies, as well as to keep track of the actual responsibilities of the service.
+
+### Limitations of the solution
+
+There are many limitations in my basic solution, most importantly, the BillingService processes the invoices in a sequential fashion, this limitation could be improved by introducing some degree of parallelism in the logic. In .NET, in order to solve this nature of problems I have used the [TLP Library](https://docs.microsoft.com/en-us/dotnet/standard/parallel-programming/task-parallel-library-tpl), which provides an elegant and fluent API for managing pipelines and data flows in parallel, it would be interesting to have something like this library in Kotlin. As food for thoughts, it would be also interesting to refactor any logic for processing invoices to a cloud service, for example Azure Functions or AWS Lambdas.
+
+### Side notes
+
+I have added some additional libraries to the skeleton implementation:
+
+* [com.kizitonwose](https://github.com/kizitonwose/Time) Type-safe time calculations in Kotlin, powered by generics.
+* [kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines) Library support for Kotlin coroutines
+* [MicroUtils/kotlin-logging]() Lightweight logging framework for Kotlin. A convenient and performant logging library wrapping slf4j with Kotlin extensions
+
+
+----------------------------------------------------------------
+
 ## Antaeus
 
 Antaeus (/ænˈtiːəs/), in Greek mythology, a giant of Libya, the son of the sea god Poseidon and the Earth goddess Gaia. He compelled all strangers who were passing through the country to wrestle with him. Whenever Antaeus touched the Earth (his mother), his strength was renewed, so that even if thrown to the ground, he was invincible. Heracles, in combat with him, discovered the source of his strength and, lifting him up from Earth, crushed him to death.
