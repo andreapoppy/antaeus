@@ -27,6 +27,10 @@ The *BillingService* depends on the following:
 
 I have decided to inject the above dependencies in the constructor, this allows me to easily test the logic of the service by controlling the mocked dependencies, as well as to keep track of the actual responsibilities of the service.
 
+## How I come up with this solution?
+
+I have worked many hours on this solution over the time span of three days. The first day I spent it on setting up the environment and on reading up the documentation of Kotlin, IntelliJ and Java. The remaining two days were spent on the actual implementation and testing. In particular, I tried to come up with a solution where the tests could verify the most important scenarios, it took me some time to get familiar with the *mockk* library and its DSL syntax.
+
 ### Limitations of the solution
 
 There are many limitations in my basic solution, most importantly, the *BillingService* processes the invoices in a sequential fashion, this limitation could be improved by introducing some degree of parallelism in the logic. In .NET, in order to solve this nature of problems I have used the [TLP Library](https://docs.microsoft.com/en-us/dotnet/standard/parallel-programming/task-parallel-library-tpl) in the past, which provides an elegant and fluent API for managing pipelines and data flows in parallel, it would be interesting to have something like this library in Kotlin. As food for thoughts, it would be also interesting to refactor any logic for processing invoices to a cloud service, for example Azure Functions or AWS Lambdas.
