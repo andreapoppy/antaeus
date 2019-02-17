@@ -8,6 +8,7 @@ import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.core.external.PaymentProvider
+import io.pleo.antaeus.models.Invoice
 import io.pleo.antaeus.models.InvoiceStatus
 import kotlinx.coroutines.*
 import java.time.Duration
@@ -62,43 +63,59 @@ open class BillingService(
         }
 
         val pendingInvoices = invoiceService.fetchAllByStatus(InvoiceStatus.PENDING)
+
         for (invoice in pendingInvoices) {
-
             this.logger.info("Processing invoice: id ${invoice.id}")
-
-            var isSuccess : Boolean
-            try {
-                isSuccess = this.paymentProvider.charge(invoice)
+            val isSuccess : Boolean = try {
+                this.paymentProvider.charge(invoice)
             } catch (e: CustomerNotFoundException) {
-                this.logger.error("Failed to process invoice with id ${invoice.id}, customer ${invoice.customerId} not found")
-                isSuccess = false
+                handleCustomerNotFoundException(invoice)
             } catch (e: CurrencyMismatchException) {
-                // TODO: figure out if we can fix the currency and retry
-                val customer = customerService.fetch(invoice.customerId)
-                this.logger.warn("Failed to process invoice with id ${invoice.id}, currency ${invoice.amount.currency}: customer id ${customer?.id} currency ${customer?.currency}")
-                isSuccess = false
+                handleCurrencyMismatchException(invoice)
             } catch (e: NetworkException) {
-                // Retry later
-                this.logger.warn("Network outage while processing invoice ${invoice.id}: retrying in 60 seconds")
-                this.timeOutProvider.sleep(this.networkOutageSleepTime)
+                handleNetworkException(invoice)
                 return
             }
 
-            if (isSuccess) {
-                this.logger.info("Invoice successfully processed: id ${invoice.id}")
-                val updatedInvoice = invoiceService.updateStatusById(invoice.id, InvoiceStatus.PAID)
-                if (updatedInvoice.status == InvoiceStatus.PAID) {
-                    this.logger.info("Invoice marked as status paid: id ${updatedInvoice.id}")
-                } else {
-                    this.logger.info("Failed to update invoice: id ${invoice.id}")
-                }
-            } else {
-                this.logger.error("Ouch! Invoice processing failed: id ${invoice.id}")
+            when {
+                isSuccess -> handleSuccess(invoice)
+                else -> handleFailure(invoice)
             }
         }
 
         // Will check in some minutes if new invoices show up
         this.timeOutProvider.sleep(this.iterationSleepTime)
+    }
+
+    private fun handleSuccess(invoice: Invoice) {
+        this.logger.info("Invoice successfully processed: id ${invoice.id}")
+        val updatedInvoice = invoiceService.updateStatusById(invoice.id, InvoiceStatus.PAID)
+        if (updatedInvoice.status == InvoiceStatus.PAID) {
+            this.logger.info("Invoice marked as status paid: id ${updatedInvoice.id}")
+        } else {
+            this.logger.info("Failed to update invoice: id ${invoice.id}")
+        }
+    }
+
+    private fun handleFailure(invoice: Invoice) {
+        this.logger.error("Ouch! Invoice processing failed: id ${invoice.id}")
+    }
+
+    private fun handleCurrencyMismatchException(invoice: Invoice): Boolean {
+        val customer = customerService.fetch(invoice.customerId)
+        this.logger.warn("Failed to process invoice with id ${invoice.id}, currency ${invoice.amount.currency}: customer id ${customer?.id} currency ${customer?.currency}")
+        invoiceService.updateCurrencyById(invoice.id, invoice.amount.currency)
+        return false
+    }
+
+    private fun handleCustomerNotFoundException(invoice: Invoice): Boolean {
+        this.logger.error("Failed to process invoice with id ${invoice.id}, customer ${invoice.customerId} not found")
+        return false
+    }
+
+    private suspend fun handleNetworkException(invoice: Invoice) {
+        this.logger.warn("Network outage while processing invoice ${invoice.id}: retrying in 60 seconds")
+        this.timeOutProvider.sleep(this.networkOutageSleepTime)
     }
 
     private fun calculateSleepIntervalToNextMonth(): Long {

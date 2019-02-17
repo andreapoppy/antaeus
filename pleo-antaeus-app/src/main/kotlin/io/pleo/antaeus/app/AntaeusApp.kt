@@ -12,6 +12,7 @@ import io.pleo.antaeus.core.helpers.DateTimeProvider
 import io.pleo.antaeus.core.helpers.Logger
 import io.pleo.antaeus.core.helpers.TimeOutProvider
 import io.pleo.antaeus.core.services.BillingService
+import io.pleo.antaeus.core.services.CurrencyService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
 import io.pleo.antaeus.data.AntaeusDal
@@ -55,7 +56,8 @@ fun main() {
     val paymentProvider = getPaymentProvider()
 
     // Create core services
-    val invoiceService = InvoiceService(dal = dal)
+    var currencyService = CurrencyService()
+    val invoiceService = InvoiceService(dal = dal, currencyService = currencyService)
     val customerService = CustomerService(dal = dal)
 
     // Create cross-cutting-concerns
