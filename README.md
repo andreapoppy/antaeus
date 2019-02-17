@@ -27,9 +27,9 @@ The *BillingService* depends on the following:
 
 I have decided to inject the above dependencies in the constructor, this allows me to easily test the logic of the service by controlling the mocked dependencies, as well as to keep track of the actual responsibilities of the service.
 
-## How I come up with this solution?
+### How I come up with this solution?
 
-I have worked many hours on this solution over the time span of three days. The first day I spent it on setting up the environment and on reading up the documentation of Kotlin, IntelliJ and Java. The remaining two days were spent on the actual implementation and testing. In particular, I tried to come up with a solution where the tests could verify the most important scenarios, it took me some time to get familiar with the *mockk* library and its DSL syntax.
+I have worked many hours on this solution over the time span of three days. The first day I spent it on setting up the environment and on reading up the documentation of Kotlin, IntelliJ, Gradle and coroutines. The remaining two days were spent on the actual implementation and testing. In particular, I tried to come up with a solution where the tests could verify the most important scenarios, it took me some time to get familiar with the *mockk* library and its DSL syntax. Generally, I believe to have spent more time testing than writing the main logic and I found that everything feels the opposite of what I am used to do working in C# and VisualStudio =) I have had some past expirience of Java, in particular Java for Android using Eclipse as IDE, I found Kotlin and IntilliJ definetly better and natural to use.
 
 ### Limitations of the solution
 
