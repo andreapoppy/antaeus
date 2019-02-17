@@ -3,6 +3,9 @@ package io.pleo.antaeus.core.helpers
 import io.pleo.antaeus.core.contracts.ILogger
 import mu.KotlinLogging
 
+/*
+    Basic wrapper around the standard KotlinLogging
+ */
 class Logger : ILogger{
 
     private val kotlinLogger = KotlinLogging.logger {}
