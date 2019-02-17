@@ -32,10 +32,12 @@ open class BillingService(
         private val logger : ILogger) {
 
     private var job : Job? = null
+    private var cancellationToken = false
     protected var iterationsCount : Int = 0
     protected open val iterationSleepTime : Long = 5.minutes.inSeconds.longValue
     protected open val networkOutageSleepTime : Long = 1.minutes.inSeconds.longValue
 
+    // Runs the billing service as a coroutine
     fun run() {
         logger.info("BillingService running")
         job = GlobalScope.launch {
@@ -43,18 +45,25 @@ open class BillingService(
         }
     }
 
-    fun stop() {
+    // Forces stop of the billing service
+    fun stop(force: Boolean) {
         logger.info("BillingService stopping")
-        job?.cancel()
-        runBlocking {
-            job?.join()
+        when {
+            !force -> cancellationToken = true
+            else -> {
+                job?.cancel()
+                runBlocking {
+                    job?.join()
+                }
+            }
         }
+
         logger.info("BillingService stopped")
     }
 
     // Controls the execution of the service
     protected open fun cancellationToken() : Boolean {
-        return false
+        return cancellationToken
     }
 
     protected open suspend fun main() {
