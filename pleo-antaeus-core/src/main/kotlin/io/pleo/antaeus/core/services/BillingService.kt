@@ -14,7 +14,8 @@ import kotlinx.coroutines.*
 import java.time.Duration
 
 open class BillingService(
-        private val dal: AntaeusDal,
+        private val invoiceService: InvoiceService,
+        private val customerService: CustomerService,
         private val dateTimeProvider: IDateTimeProvider,
         private val timeOutProvider: ITimeOutProvider,
         private val paymentProvider: PaymentProvider,
@@ -61,7 +62,7 @@ open class BillingService(
             return
         }
 
-        val pendingInvoices = dal.fetchInvoicesByStatus(InvoiceStatus.PENDING)
+        val pendingInvoices = invoiceService.fetchAllByStatus(InvoiceStatus.PENDING)
         for (invoice in pendingInvoices) {
 
             this.logger.info("Processing invoice: id ${invoice.id}")
@@ -74,7 +75,7 @@ open class BillingService(
                 isSuccess = false
             } catch (e: CurrencyMismatchException) {
                 // TODO: figure out if we can fix the currency and retry
-                val customer = dal.fetchCustomer(invoice.id)
+                val customer = customerService.fetch(invoice.customerId)
                 this.logger.warn("Failed to process invoice with id ${invoice.id}, currency ${invoice.amount.currency}: customer id ${customer?.id} currency ${customer?.currency}")
                 isSuccess = false
             } catch (e: NetworkException) {
@@ -86,7 +87,7 @@ open class BillingService(
 
             if (isSuccess) {
                 this.logger.info("Invoice successfully processed: id ${invoice.id}")
-                val updatedInvoice = dal.updateInvoiceStatus(invoice.id, InvoiceStatus.PAID)
+                val updatedInvoice = invoiceService.updateInvoiceStatus(invoice.id, InvoiceStatus.PAID)
                 if (updatedInvoice != null && updatedInvoice.status == InvoiceStatus.PAID) {
                     this.logger.info("Invoice marked as status paid: id ${updatedInvoice.id}")
                 } else {

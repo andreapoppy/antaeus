@@ -65,7 +65,8 @@ fun main() {
 
     // This is _my_ billing service
     val billingService = BillingService(
-            dal = dal,
+            invoiceService = invoiceService,
+            customerService = customerService,
             dateTimeProvider = dateTimeProvider,
             timeOutProvider = timeOutProvider,
             paymentProvider = paymentProvider,

@@ -6,15 +6,18 @@ import io.pleo.antaeus.core.contracts.ILogger
 import io.pleo.antaeus.core.contracts.ITimeOutProvider
 import io.pleo.antaeus.core.external.PaymentProvider
 import io.pleo.antaeus.core.services.BillingService
+import io.pleo.antaeus.core.services.CustomerService
+import io.pleo.antaeus.core.services.InvoiceService
 import io.pleo.antaeus.data.AntaeusDal
 
 class BillingServiceTestable(
-        dal: AntaeusDal,
+        invoiceService: InvoiceService,
+        customerService: CustomerService,
         dateTimeProvider: IDateTimeProvider,
         timeOutProvider: ITimeOutProvider,
         paymentProvider: PaymentProvider,
         logger: ILogger)
-    : BillingService(dal, dateTimeProvider, timeOutProvider, paymentProvider, logger) {
+    : BillingService(invoiceService, customerService, dateTimeProvider, timeOutProvider, paymentProvider, logger) {
 
     private var maxIterations : Int = 0
 

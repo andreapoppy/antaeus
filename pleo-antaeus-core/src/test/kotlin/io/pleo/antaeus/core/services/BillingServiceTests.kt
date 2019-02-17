@@ -29,8 +29,8 @@ class BillingServiceTests {
         // Arrange
         val fixture = TestFixture()
 
-        fixture.dal = mockk {
-            every { fetchInvoicesByStatus(InvoiceStatus.PENDING) } returns fixture.pendingInvoices
+        fixture.invoiceService = mockk {
+            every { fetchAllByStatus(InvoiceStatus.PENDING) } returns fixture.pendingInvoices
             every { updateInvoiceStatus(1, any()) } returns fixture.paidInvoices[0]
             every { updateInvoiceStatus(2, any()) } returns fixture.paidInvoices[1]
         }
@@ -44,7 +44,8 @@ class BillingServiceTests {
         }
 
         val billingService = BillingServiceTestable(
-                fixture.dal,
+                fixture.invoiceService,
+                fixture.customerService,
                 fixture.dateTimeProvider,
                 fixture.timeOutProvider,
                 fixture.paymentProvider,
@@ -67,8 +68,8 @@ class BillingServiceTests {
         // Arrange
         val fixture = TestFixture()
 
-        fixture.dal = mockk {
-            every { fetchInvoicesByStatus(InvoiceStatus.PENDING) } returns listOf(fixture.pendingInvoices[0])
+        fixture.invoiceService = mockk {
+            every { fetchAllByStatus(InvoiceStatus.PENDING) } returns listOf(fixture.pendingInvoices[0])
             every { updateInvoiceStatus(1, any()) } returns fixture.paidInvoices[0]
         }
 
@@ -81,7 +82,8 @@ class BillingServiceTests {
         }
 
         val billingService = BillingServiceTestable(
-                fixture.dal,
+                fixture.invoiceService,
+                fixture.customerService,
                 fixture.dateTimeProvider,
                 fixture.timeOutProvider,
                 fixture.paymentProvider,
@@ -119,7 +121,8 @@ class BillingServiceTests {
         }
 
         val billingService = BillingServiceTestable(
-                fixture.dal,
+                fixture.invoiceService,
+                fixture.customerService,
                 fixture.dateTimeProvider,
                 fixture.timeOutProvider,
                 fixture.paymentProvider,
@@ -142,8 +145,8 @@ class BillingServiceTests {
         // Arrange
         val fixture = TestFixture()
 
-        fixture.dal = mockk {
-            every { fetchInvoicesByStatus(InvoiceStatus.PENDING) } returns fixture.pendingInvoices
+        fixture.invoiceService = mockk {
+            every { fetchAllByStatus(InvoiceStatus.PENDING) } returns fixture.pendingInvoices
             every { updateInvoiceStatus(2, any()) } returns fixture.paidInvoices[1]
         }
 
@@ -156,7 +159,8 @@ class BillingServiceTests {
         }
 
         val billingService = BillingServiceTestable(
-                fixture.dal,
+                fixture.invoiceService,
+                fixture.customerService,
                 fixture.dateTimeProvider,
                 fixture.timeOutProvider,
                 fixture.paymentProvider,
@@ -193,7 +197,9 @@ class TestFixture {
             Invoice(2, 99, Money(BigDecimal.valueOf(24), Currency.DKK), InvoiceStatus.PAID)
     )
 
-    var dal = mockk<AntaeusDal> {}
+    var invoiceService = mockk<InvoiceService> {}
+
+    var customerService = mockk<CustomerService> {}
 
     var timeOutProvider = mockk<ITimeOutProvider> {}
 
