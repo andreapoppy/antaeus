@@ -12,11 +12,12 @@ import java.math.BigDecimal
 
 class CurrencyService {
 
-    private val eurToDkk = BigDecimal(0.13)
-    private val usdToDkk = BigDecimal(6.60)
-    private val gbpToDkk = BigDecimal(12.73)
-    private val sekToDkk = BigDecimal(1.42)
+    private val eurToDkk = BigDecimal(7.4584)
+    private val usdToDkk = BigDecimal(6.60292)
+    private val gbpToDkk = BigDecimal(8.51526)
+    private val sekToDkk = BigDecimal(0.71213)
 
+    // Converts an amount to a target currency
     fun convert(amount: Money, toCurrency : Currency) : Money {
 
         if (amount.currency == toCurrency) {
@@ -31,13 +32,15 @@ class CurrencyService {
             Currency.SEK -> amount.value * sekToDkk
         }
 
-        val result = when(toCurrency) {
+        var result = when(toCurrency) {
             Currency.DKK -> amountInDkk
             Currency.EUR -> amountInDkk / eurToDkk
             Currency.USD -> amountInDkk / usdToDkk
             Currency.GBP -> amountInDkk / gbpToDkk
             Currency.SEK -> amountInDkk / sekToDkk
         }
+
+        result = result.setScale(2, BigDecimal.ROUND_HALF_UP);
 
         return Money(result, toCurrency)
     }
