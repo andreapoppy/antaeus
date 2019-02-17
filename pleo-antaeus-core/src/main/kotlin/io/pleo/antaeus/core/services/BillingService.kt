@@ -8,7 +8,6 @@ import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.core.external.PaymentProvider
-import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.models.InvoiceStatus
 import kotlinx.coroutines.*
 import java.time.Duration
@@ -87,8 +86,8 @@ open class BillingService(
 
             if (isSuccess) {
                 this.logger.info("Invoice successfully processed: id ${invoice.id}")
-                val updatedInvoice = invoiceService.updateInvoiceStatus(invoice.id, InvoiceStatus.PAID)
-                if (updatedInvoice != null && updatedInvoice.status == InvoiceStatus.PAID) {
+                val updatedInvoice = invoiceService.updateStatusById(invoice.id, InvoiceStatus.PAID)
+                if (updatedInvoice.status == InvoiceStatus.PAID) {
                     this.logger.info("Invoice marked as status paid: id ${updatedInvoice.id}")
                 } else {
                     this.logger.info("Failed to update invoice: id ${invoice.id}")

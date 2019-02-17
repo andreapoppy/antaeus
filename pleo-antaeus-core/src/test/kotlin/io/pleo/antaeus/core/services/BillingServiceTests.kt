@@ -9,7 +9,6 @@ import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.core.external.PaymentProvider
 import io.pleo.antaeus.core.helpers.Logger
 import io.pleo.antaeus.core.services.artifacts.BillingServiceTestable
-import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.models.Currency
 import io.pleo.antaeus.models.Invoice
 import io.pleo.antaeus.models.InvoiceStatus
@@ -18,7 +17,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDateTime
-
 
 
 class BillingServiceTests {
@@ -31,8 +29,8 @@ class BillingServiceTests {
 
         fixture.invoiceService = mockk {
             every { fetchAllByStatus(InvoiceStatus.PENDING) } returns fixture.pendingInvoices
-            every { updateInvoiceStatus(1, any()) } returns fixture.paidInvoices[0]
-            every { updateInvoiceStatus(2, any()) } returns fixture.paidInvoices[1]
+            every { updateStatusById(1, any()) } returns fixture.paidInvoices[0]
+            every { updateStatusById(2, any()) } returns fixture.paidInvoices[1]
         }
 
         fixture.timeOutProvider = mockk {
@@ -52,8 +50,8 @@ class BillingServiceTests {
                 fixture.logger)
                 .withMaxIterations(1)
 
-        // Act
         runBlocking {
+            // Act
             billingService.main()
         }
 
@@ -70,7 +68,7 @@ class BillingServiceTests {
 
         fixture.invoiceService = mockk {
             every { fetchAllByStatus(InvoiceStatus.PENDING) } returns listOf(fixture.pendingInvoices[0])
-            every { updateInvoiceStatus(1, any()) } returns fixture.paidInvoices[0]
+            every { updateStatusById(1, any()) } returns fixture.paidInvoices[0]
         }
 
         fixture.paymentProvider = mockk {
@@ -90,8 +88,8 @@ class BillingServiceTests {
                 fixture.logger)
                 .withMaxIterations(2)
 
-        // Act
         runBlocking {
+            // Act
             billingService.main()
         }
 
@@ -129,8 +127,8 @@ class BillingServiceTests {
                 fixture.logger)
                 .withMaxIterations(1)
 
-        // Act
         runBlocking {
+            // Act
             billingService.main()
         }
 
@@ -142,12 +140,13 @@ class BillingServiceTests {
 
     @Test
     fun `BillingService fails to charge a non-existing customer`() {
+
         // Arrange
         val fixture = TestFixture()
 
         fixture.invoiceService = mockk {
             every { fetchAllByStatus(InvoiceStatus.PENDING) } returns fixture.pendingInvoices
-            every { updateInvoiceStatus(2, any()) } returns fixture.paidInvoices[1]
+            every { updateStatusById(2, any()) } returns fixture.paidInvoices[1]
         }
 
         fixture.timeOutProvider = mockk {
@@ -166,9 +165,9 @@ class BillingServiceTests {
                 fixture.paymentProvider,
                 fixture.logger)
                 .withMaxIterations(1)
-
-        // Act
+        
         runBlocking {
+            // Act
             billingService.main()
         }
 
