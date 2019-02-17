@@ -1,5 +1,6 @@
 package io.pleo.antaeus.core.services
 
+import com.kizitonwose.time.minutes
 import io.pleo.antaeus.core.contracts.IDateTimeProvider
 import io.pleo.antaeus.core.contracts.ILogger
 import io.pleo.antaeus.core.contracts.ITimeOutProvider
@@ -21,12 +22,23 @@ open class BillingService(
 
     private var job : Job? = null
     protected var iterationsCount : Int = 0
+    protected open val iterationSleepTime : Long = 5.minutes.inSeconds.longValue
+    protected open val networkOutageSleepTime : Long = 1.minutes.inSeconds.longValue
 
     fun run() {
         logger.info("BillingService running")
         job = GlobalScope.launch {
             main()
         }
+    }
+
+    fun stop() {
+        logger.info("BillingService stopping")
+        job?.cancel()
+        runBlocking {
+            job?.join()
+        }
+        logger.info("BillingService stopped")
     }
 
     protected open fun cancellationToken() : Boolean {
@@ -46,6 +58,7 @@ open class BillingService(
         if (!dateTimeProvider.isFirstOfTheMonth()) {
             val intervalInMs = calculateSleepIntervalToNextMonth()
             this.timeOutProvider.sleep(intervalInMs)
+            return
         }
 
         val pendingInvoices = dal.fetchInvoicesByStatus(InvoiceStatus.PENDING)
@@ -67,7 +80,7 @@ open class BillingService(
             } catch (e: NetworkException) {
                 // Retry later
                 this.logger.warn("Network outage while processing invoice ${invoice.id}: retrying in 60 seconds")
-                this.timeOutProvider.sleep(60)
+                this.timeOutProvider.sleep(this.networkOutageSleepTime)
                 return
             }
 
@@ -84,19 +97,12 @@ open class BillingService(
             }
         }
 
-        // Will check in 5 minutes if new invoices show up
-        this.timeOutProvider.sleep(5 * 60)
-    }
-
-    private suspend fun stop() {
-        logger.info("BillingService stopping")
-        job?.cancel()
-        job?.join()
-        logger.info("BillingService stopped")
+        // Will check in some minutes if new invoices show up
+        this.timeOutProvider.sleep(this.iterationSleepTime)
     }
 
     private fun calculateSleepIntervalToNextMonth(): Long {
         val nextFirstOfTheMonth = dateTimeProvider.nextFirstOfTheMonth()
-        return Duration.between(nextFirstOfTheMonth, dateTimeProvider.now()).toMillis()
+        return Duration.between(dateTimeProvider.now(), nextFirstOfTheMonth).toMillis()
     }
 }

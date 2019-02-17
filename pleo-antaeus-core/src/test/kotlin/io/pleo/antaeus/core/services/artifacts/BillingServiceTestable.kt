@@ -1,5 +1,6 @@
 package io.pleo.antaeus.core.services.artifacts
 
+import com.kizitonwose.time.minutes
 import io.pleo.antaeus.core.contracts.IDateTimeProvider
 import io.pleo.antaeus.core.contracts.ILogger
 import io.pleo.antaeus.core.contracts.ITimeOutProvider
@@ -16,6 +17,9 @@ class BillingServiceTestable(
     : BillingService(dal, dateTimeProvider, timeOutProvider, paymentProvider, logger) {
 
     private var maxIterations : Int = 0
+
+    public override val iterationSleepTime : Long = 5.minutes.inSeconds.longValue
+    public override val networkOutageSleepTime : Long = 1.minutes.inSeconds.longValue
 
     public override suspend fun main()
     {
