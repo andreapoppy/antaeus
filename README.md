@@ -2,7 +2,7 @@
 
 Date: 17-02-2019
 
-Contacts: andrea.del.popolo@hotmail.it | [LinkedIn](https://www.linkedin.com/in/andrea-del-popolo/)
+Contacts: [LinkedIn](https://www.linkedin.com/in/andrea-del-popolo/)
 
 ### Notes:
 
